@@ -1,5 +1,4 @@
 // Constants
-
 const COLUMNS_NUM = 7;
 const ROWS_NUM = 6;
 const connect4Container = document.getElementById('connect-four-container');
@@ -11,13 +10,15 @@ const gameState = {
 	turn: 'Red',
 };
 
+let winner = null;
+
 let board = [
-	// [0, 0, 0, 0, 0, 0, 0],
-	// [0, 0, 0, 0, 0, 0, 0],
-	// [0, 0, 0, 0, 0, 0, 0],
-	// [0, 0, 0, 0, 0, 0, 0],
-	// [0, 0, 0, 0, 0, 0, 0],
-	// ['Red', 0, 0, 0, 0, 0, 0],
+	// [0, "Red", "Red", "Red", "Red", 0, 'Red'], 	0
+	// [0, 0, 0, 0, 0, 0, 0],   					1
+	// [0, 0, 0, 0, 0, 0, 0],   					2
+	// [0, 0, 0, 0, 0, 0, 0],   					3
+	// [0, 0, 0, 0, 0, 0, 0],   					4
+	// ['Red', 'Yellow', 0, 0, 0, 0, 0],			5
 ];
 
 function makeGrid() {
@@ -41,7 +42,6 @@ function startGame() {
 		let player1 = prompt('Enter Player 1 Name:');
 		let player2 = prompt('Enter Player 2 Name:');
 
-		console.log(gameState);
 		// order red, yellow
 		let randomNumber = Math.round(Math.random());
 		gameState.player1Name = randomNumber == 0 ? player1 : player2;
@@ -57,9 +57,13 @@ function startGame() {
 function renderInfo() {
 	// player1 => RED
 	// player2 => Yellow
-	turnText.innerText = `${gameState.turn} Turn ( ${
-		gameState.turn == 'Red' ? gameState.player1Name : gameState.player2Name
-	} )`;
+	if (winner == null) {
+		turnText.innerText = `${gameState.turn} Turn ( ${
+			gameState.turn == 'Red' ? gameState.player1Name : gameState.player2Name
+		} )`;
+	} else {
+		turnText.innerText = `The Winner is ${winner}`;
+	}
 }
 
 function putCoin(columnNum) {
@@ -68,7 +72,6 @@ function putCoin(columnNum) {
 		// index => 5 - 0 ( 7 )
 		if (board[index][columnNum] == 0) {
 			board[index][columnNum] = gameState.turn;
-			console.log('Put Coin');
 
 			// Changing the turn for each player
 			if (gameState.turn == 'Red') {
@@ -77,8 +80,12 @@ function putCoin(columnNum) {
 				gameState.turn = 'Red';
 			}
 
-			renderInfo();
+			checkWinner();
+
 			renderGrid();
+
+			renderInfo();
+			console.log(`The Winner is: ${winner}`);
 			break;
 		}
 	}
@@ -100,14 +107,176 @@ function renderGrid() {
 			// attribute data-column-id
 			element.dataset.columnId = column_count;
 
-			element.addEventListener('click', function (event) {
-				console.log('columnId:', element.dataset.columnId);
-				putCoin(element.dataset.columnId);
-			});
+			if (winner == null) {
+				element.addEventListener('click', function (event) {
+					putCoin(element.dataset.columnId);
+				});
+			}
 
 			connect4Container.append(element);
 		}
 	}
+}
+
+function checkWinner() {
+	if (winner == null) {
+		checkHorizontal();
+	}
+
+	if (winner == null) {
+		checkVertical();
+	}
+
+	if (winner == null) { 
+		checkDiagonal();
+	}
+}
+
+function checkHorizontal() {
+
+	// for loop on coin array
+	for (let rowIndex = 0; rowIndex < board.length; rowIndex++) {
+		// for loop on coins that inside the row array
+		for (let coinIndex = 0; coinIndex < board[rowIndex].length; coinIndex++) {
+			const coin = board[rowIndex][coinIndex];
+
+			// if the coin is not chosen before
+			if (coin == 0) {
+				continue;
+			}
+
+			// if the coin is chosen by a player before
+			if (coin == 'Yellow' || coin == 'Red') {
+				for (let horizontalCoinIndex = coinIndex + 1; horizontalCoinIndex < (coinIndex + 1) + 3; horizontalCoinIndex++) {
+					const horizontalCoin = board[rowIndex][horizontalCoinIndex];
+
+					// 'red', 'yellow'
+					if (horizontalCoin == coin) {
+						winner = coin;
+					} else {
+						winner = null;
+						break;
+					}
+				}
+			}
+			if (winner != null) {
+				break;
+			}
+		}
+	}
+}
+
+function checkVertical() {
+	// for loop on coin array
+	for (let rowIndex = 0; rowIndex < board.length; rowIndex++) {
+		// for loop on coins that inside the row array
+		for (let coinIndex = 0; coinIndex < board[rowIndex].length; coinIndex++) {
+			const coin = board[rowIndex][coinIndex];
+
+			// if the coin is not chosen before
+			if (coin == 0) {
+				continue;
+			}
+
+			// if the coin is chosen by a player before
+			if (coin == 'Yellow' || coin == 'Red') {
+				if (rowIndex <= 2) {
+					for (
+						let verticalCoinIndex = rowIndex + 1;
+						verticalCoinIndex < rowIndex + 1 + 3;
+						verticalCoinIndex++
+					) {
+						const verticalCoin = board[verticalCoinIndex][coinIndex];
+
+						// 'red', 'yellow'
+						if (verticalCoin == coin) {
+							winner = coin;
+						} else {
+							winner = null;
+							break;
+						}
+					}
+				}
+			}
+			if (winner != null) {
+				break;
+			}
+		}
+	}
+}
+
+function checkDiagonal() {
+	// for loop on coin array
+	for (let rowIndex = 0; rowIndex < board.length; rowIndex++) {
+		// for loop on coins that inside the row array
+		for (let coinIndex = 0; coinIndex < board[rowIndex].length; coinIndex++) {
+			const coin = board[rowIndex][coinIndex];
+			if (coin == 0) {
+				continue;
+			}
+
+			// if the coin is chosen by a player before
+			if (coin == 'Yellow' || coin == 'Red') {
+				// vector 1:
+				// subtract ( minus ) column by 1
+				// subtract ( minus ) row by 1
+
+				let counterRow = rowIndex;
+				let counterColumn = coinIndex;
+				let counter = 0;
+
+				while (counter < 4) {
+					const diagonalCoin = board[counterRow][counterColumn];
+
+					if (diagonalCoin == coin) {
+						winner = coin;
+					} else {
+						winner = null;
+						break;
+					}
+
+					counterRow--;
+					counterColumn--;
+					counter++;
+				}
+
+				if (winner != null) {
+					break;
+				}
+
+				// vector 2:
+				// plus column by 1
+				// subtract ( minus ) row by 1
+
+				counterRow = rowIndex;
+				counterColumn = coinIndex;
+				counter = 0;
+				while (counter < 4) {
+					const diagonalCoin = board[counterRow][counterColumn];
+
+					if (diagonalCoin == coin) {
+						winner = coin;
+					} else {
+						winner = null;
+						break;
+					}
+
+					counterRow--;
+					counterColumn++;
+					counter++;
+				}
+
+				if (winner != null) {
+					break;
+				}
+			}
+
+			if (winner != null) {
+				break;
+			}
+		}
+	}
+
 }
 
 startGame();

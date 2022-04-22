@@ -3,13 +3,27 @@
 <head>
     <title>Connect Four</title>
     <link href="main.css" rel="stylesheet" type="text/css">
+    <style>
+        button {
+            padding: 10px;
+            border: 1px solid black;
+            font-size: 25px;
+            background-color: white;
+            color: black;
+        }
+    </style>
 </head>
 
 <body>
     <h1>Connect Four Game</h1>
-    <h2 id="turn-text">Red Turn ( Devien )</h2>
+    <h2 id="turn-text">Red Turn ( Devien-Meshal )</h2>
+
     <div class="grid" id="connect-four-container">
 
     </div>
+
+    <button onclick="startGame()">
+        Reset
+    </button>
     <script src="main.js"></script>
 </body>
