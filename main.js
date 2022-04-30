@@ -8,6 +8,7 @@ const gameState = {
 	player1Name: null,
 	player2Name: null,
 	turn: 'Red',
+	isSingle: null
 };
 
 let winner = null;
@@ -35,9 +36,21 @@ function startGame() {
         2 => multi\n`
 	);
 
+	winner = null;
 	if (singleOrMultiGame == 1) {
-		// Computer game
+		gameState.isSingle = true;
+
+		let player1 = prompt('Enter Player 1 Name:');
+
+		gameState.player1Name = player1;
+		gameState.player2Name = 'Computer';
+		gameState.turn = 'Red';
+
+		alert(`The first player to play as RED ${gameState.player1Name}`);
+
 	} else if (singleOrMultiGame == 2) {
+		gameState.isSingle = false;
+
 		// Multi ( Two ) player game
 		let player1 = prompt('Enter Player 1 Name:');
 		let player2 = prompt('Enter Player 2 Name:');
@@ -46,12 +59,24 @@ function startGame() {
 		let randomNumber = Math.round(Math.random());
 		gameState.player1Name = randomNumber == 0 ? player1 : player2;
 		gameState.player2Name = randomNumber == 0 ? player2 : player1;
+		gameState.turn = 'Red';
 
 		alert(`The first player to play as RED ${gameState.player1Name}`);
-		renderInfo();
 	}
+	renderInfo();
 	makeGrid();
 	renderGrid();
+}
+
+function ColumnIsEmpty(columnIndex) {
+	for (let index = 0; index < board.length; index++) {
+		const coin = board[index][columnIndex];
+		if (coin == 0) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 function renderInfo() {
@@ -109,7 +134,24 @@ function renderGrid() {
 
 			if (winner == null) {
 				element.addEventListener('click', function (event) {
+					// Mutli or Single
 					putCoin(element.dataset.columnId);
+
+					// Computer Turn
+					if (gameState.isSingle && gameState.turn == 'Yellow') {
+						let randomColumn;
+						
+						// Infinite Loop
+						while (true) {
+							randomColumn = Math.round(Math.random() * COLUMNS_NUM); // 0 -> 1 * 7 = 7
+							if (ColumnIsEmpty(randomColumn)) {
+								break;
+							}
+						}
+
+						// put coin for the computer
+						putCoin(randomColumn);
+					}
 				});
 			}
 
@@ -147,14 +189,21 @@ function checkHorizontal() {
 
 			// if the coin is chosen by a player before
 			if (coin == 'Yellow' || coin == 'Red') {
-				for (let horizontalCoinIndex = coinIndex + 1; horizontalCoinIndex < (coinIndex + 1) + 3; horizontalCoinIndex++) {
+				let counter = 0;
+				for (let horizontalCoinIndex = coinIndex; horizontalCoinIndex <= coinIndex + 1 + 3; horizontalCoinIndex++) {
 					const horizontalCoin = board[rowIndex][horizontalCoinIndex];
+					console.log('Counter:', counter);
+					console.log(horizontalCoin, rowIndex, coinIndex);
 
+					if (counter == 4) {
+						winner = coin
+						break;
+					}
+					
 					// 'red', 'yellow'
 					if (horizontalCoin == coin) {
-						winner = coin;
+						counter++;
 					} else {
-						winner = null;
 						break;
 					}
 				}
@@ -181,18 +230,24 @@ function checkVertical() {
 			// if the coin is chosen by a player before
 			if (coin == 'Yellow' || coin == 'Red') {
 				if (rowIndex <= 2) {
+					let counter = 0;
 					for (
 						let verticalCoinIndex = rowIndex + 1;
-						verticalCoinIndex < rowIndex + 1 + 3;
+						verticalCoinIndex <= rowIndex + 1 + 3;
 						verticalCoinIndex++
 					) {
 						const verticalCoin = board[verticalCoinIndex][coinIndex];
+						console.log('verticalCoin:', verticalCoin);
+						
+						if (counter == 4) {
+							winner = coin
+							break;
+						}
 
 						// 'red', 'yellow'
 						if (verticalCoin == coin) {
-							winner = coin;
+							counter++;
 						} else {
-							winner = null;
 							break;
 						}
 					}
@@ -226,7 +281,11 @@ function checkDiagonal() {
 				let counter = 0;
 
 				while (counter < 4) {
-					const diagonalCoin = board[counterRow][counterColumn];
+					let diagonalCoin;
+					if (counterRow != -1 && counterColumn != -1) {
+						console.log(counterRow, counterColumn);
+						diagonalCoin = board[counterRow][counterColumn];
+					}
 
 					if (diagonalCoin == coin) {
 						winner = coin;
@@ -252,7 +311,11 @@ function checkDiagonal() {
 				counterColumn = coinIndex;
 				counter = 0;
 				while (counter < 4) {
-					const diagonalCoin = board[counterRow][counterColumn];
+					let diagonalCoin;
+					if (counterRow != -1 && counterColumn != -1) {
+						console.log(counterRow, counterColumn);
+						diagonalCoin = board[counterRow][counterColumn];
+					}
 
 					if (diagonalCoin == coin) {
 						winner = coin;
